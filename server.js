@@ -1,25 +1,30 @@
-//include files and create required variables
 const express = require("express");
 const app = express();
 const fs = require("fs");
 const path = require("path");
-
-//add the html page to serve
+const isProd = typeof process.env.NODE_ENV !== 'undefined' && (process.env.NODE_ENV === 'production')
 const indexHTML = (() => {
-    return fs.readFileSync(path.resolve(__dirname, "./index.html"), "utf-8");
+  return fs.readFileSync(path.resolve(__dirname, "./index.html"), "utf-8");
 })();
 
-app.use("/dist", express.static(path.resolve(__dirname, "./dist")));
+if (isProd) {
+  app.use("/", express.static(path.resolve(__dirname, "./dist")));
+} else {
+  app.use("/dist", express.static(path.resolve(__dirname, "./dist")));
+}
 
-require("./build/dev-server")(app);
+if (isProd) {
+  const bundlePath = path.resolve(__dirname, './dist/server/main.js');
+} else {
+  require("./build/dev-server")(app);
+}
 
-//listen to and catch all get requests
 app.get("*", (req, res) => {
-        res.write(indexHTML);
-        res.end();
+  res.write(indexHTML);
+  res.end();
 });
-//create the port to listen to
+
 const port = process.env.PORT || 3000;
-app.listen(port, () =>{
-    console.log(`Server started at http://localhost${port}`);
+app.listen(port, () => {
+  console.log(`server started at http://localhost:${port}`);
 });
